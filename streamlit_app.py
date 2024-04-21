@@ -8,7 +8,7 @@ import streamlit as st
 import sqlite3
 import datetime
 
-zaman=str(datetime.now())
+zaman=str(datetime.datetime.now())
 
 conn=sqlite3.connect("comment.sqlite3")
 c=conn.cursor()
