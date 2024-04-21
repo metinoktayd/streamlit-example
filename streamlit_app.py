@@ -5,6 +5,15 @@ from sklearn.feature_extraction.text import CountVectorizer #kelimeleri vektöre
 from sklearn.model_selection import train_test_split
 import string
 import streamlit as st
+import sqlite3
+import datetime
+
+zaman=str(datetime.now())
+
+conn=sqlite3.connect("comment.sqlite3")
+c=conn.cursor()
+c.execute("CREATE TABLE IF NOT EXISTS tests(yorum TEXT,sonuc TEXT,zaman TEXT)")
+conn.commit()
 
 df=pd.read_csv('comment.csv', on_bad_lines="skip",delimiter=";")
 
@@ -48,3 +57,5 @@ if btn:
     s=kategori.get(sonuc[0])
     st.subheader(s)
     st.write("Model Skoru",score)
+    c.execute("INSERT INTO yorumlar VALUES(?,?,?)",(y,s,zaman))
+    conn.commit()
