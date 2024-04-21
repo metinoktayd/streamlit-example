@@ -57,7 +57,7 @@ if btn:
     s=kategori.get(sonuc[0])
     st.subheader(s)
     st.write("Model Skoru",score)
-    c.execute("INSERT INTO yorumlar VALUES(?,?,?)",(y,s,zaman))
+    c.execute("INSERT INTO tests VALUES(?,?,?)",(y,s,zaman))
     conn.commit()
 
 c.execute("SELECT * FROM tests")
