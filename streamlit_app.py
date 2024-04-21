@@ -59,3 +59,7 @@ if btn:
     st.write("Model Skoru",score)
     c.execute("INSERT INTO yorumlar VALUES(?,?,?)",(y,s,zaman))
     conn.commit()
+
+c.execute("SELECT * FROM tests")
+tests=c.fetchall()
+st.table(tests)
