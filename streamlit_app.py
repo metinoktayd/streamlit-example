@@ -1,40 +1,50 @@
-import altair as alt
 import numpy as np
 import pandas as pd
+from sklearn.ensemble import RandomForestClassifier #karar ağacı
+from sklearn.feature_extraction.text import CountVectorizer #kelimeleri vektöre çevirir
+from sklearn.model_selection import train_test_split
+import string
 import streamlit as st
 
-"""
-# Welcome to Streamlit!
+df=pd.read_csv('comment.csv', on_bad_lines="skip",delimiter=";")
 
-Edit `/streamlit_app.py` to customize this app to your heart's desire :heart:.
-If you have any questions, checkout our [documentation](https://docs.streamlit.io) and [community
-forums](https://discuss.streamlit.io).
+def temizle(sutun):
+    semboller=string.punctuation
+    sutun=sutun.lower()
+    for sembol in semboller:
+        sutun=sutun.replace(sembol," ")
+    stopwords=['fakat','lakin','ancak','acaba', 'ama', 'aslında', 'az', 'bazı', 'belki', 'biri', 'birkaç', 'birşey', 'biz', 'bu', 'çok', 'çünkü', 'da', 'daha', 'de', 'defa', 'diye', 'eğer', 'en', 'gibi', 'hem', 'hep', 'hepsi', 'her', 'hiç', 'için', 'ile', 'ise', 'kez', 'ki', 'kim', 'mı', 'mu', 'mü', 'nasıl', 'ne', 'neden', 'nerde', 'nerede', 'nereye', 'niçin', 'niye', 'o', 'sanki', 'şey', 'siz', 'şu', 'tüm', 've', 'veya', 'ya', 'yani']
+    for stopwords in stopwords:
+        s=" "+stopwords+" "
+        sutun=sutun.replace(s," ")
+    sutun=sutun.replace("  "," ")
+    return sutun
+df['Metin']=df['Metin'].apply(temizle)
 
-In the meantime, below is an example of what you can do with just a few lines of code:
-"""
+cv=CountVectorizer(max_features=150)
+X=cv.fit_transform(df['Metin']).toarray()
+y=df['Durum']
 
-num_points = st.slider("Number of points in spiral", 1, 10000, 1100)
-num_turns = st.slider("Number of turns in spiral", 1, 300, 31)
+x_train,x_test,y_train,y_test=train_test_split(X,y,train_size=0.75,random_state=42)
 
-indices = np.linspace(0, 1, num_points)
-theta = 2 * np.pi * num_turns * indices
-radius = indices
+rf=RandomForestClassifier()
+model=rf.fit(X,y)
+model.score(X,y)
 
-x = radius * np.cos(theta)
-y = radius * np.sin(theta)
+y=st.text_area("Yorum Metinini Giriniz")
+btn=st.button("Yorumu Kategorilendir")
+if btn:
+    rf = RandomForestClassifier()
+    model = rf.fit(x_train, y_train)
+    score=model.score(x_test, y_test)
 
-df = pd.DataFrame({
-    "x": x,
-    "y": y,
-    "idx": indices,
-    "rand": np.random.randn(num_points),
-})
-
-st.altair_chart(alt.Chart(df, height=700, width=700)
-    .mark_point(filled=True)
-    .encode(
-        x=alt.X("x", axis=None),
-        y=alt.Y("y", axis=None),
-        color=alt.Color("idx", legend=None, scale=alt.Scale()),
-        size=alt.Size("rand", legend=None, scale=alt.Scale(range=[1, 150])),
-    ))
+    tahmin = cv.transform(np.array([y])).toarray()
+    kategori = {
+        0: "Olumsuz",
+        1: "Olumlu",
+        2: "Nötr"
+    }
+    sonuc = model.predict(tahmin)
+    s=kategori.get(sonuc[0])
+    st.subheader(s)
+    st.write("Model Skoru",score)
